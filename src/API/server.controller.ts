@@ -1,7 +1,7 @@
 import { Request, Response, RequestHandler } from 'express';
-import { app } from '../../lib/express';
-import { packageJson, nodeEnv } from '../../lib/config/env.config';
-import { HealthCheck } from './server.schema';
+import { app } from '@/lib/express';
+import { packageJson, nodeEnv } from '@/lib/config/env.config';
+import { HealthCheck } from '@/DTO/server.schema';
 
 export const healthController: RequestHandler = async (
     request: Request,

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { packageJson } from '../config/env.config';
+import { packageJson } from '@/lib/config/env.config';
 
 export const configureCustomHeaders = () => {
   return (req: Request, res: Response, next: NextFunction) => {

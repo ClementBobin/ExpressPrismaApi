@@ -4,15 +4,15 @@ import {
     loginHandler,
     getUsersHandler,
     getUserByIdHandler
-} from './user.controller';
-import registry from '../../lib/docs/openAPIRegistry';
-import { ResponseError } from '../../lib/docs/server.schema';
+} from '../user.controller';
+import registry from '@/lib/docs/openAPIRegistry';
+import { ResponseError } from '@/DTO/server.schema';
 import {
     CreateUserSchema,
     LoginSchema,
     ResponseWithLoginResponseSchema,
     ResponseWithCreateUserResponseSchema
-} from './user.schema';
+} from '@/DTO/user.schema';
 
 const router = express.Router();
 

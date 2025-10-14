@@ -1,16 +1,16 @@
 import express from 'express';
 import {
   healthController
-} from './server.controller';
-import registry from '../../lib/docs/openAPIRegistry';
-import { ResponseError } from '../../lib/docs/server.schema';
+} from '@/API/server.controller';
+import registry from '@/lib/docs/openAPIRegistry';
+import { ResponseError } from '@/DTO/server.schema';
 import {
   ResponseWithHealthCheck
-} from './server.schema';
+} from '@/DTO/server.schema';
 import { apiReference } from '@scalar/express-api-reference';
-import { docs } from '../../lib/docs/docOpenApi';
-import { app } from '../../lib/express';
-import { docEnable } from '../../lib/config/env.config';
+import { docs } from '@/lib/docs/docOpenApi';
+import { app } from '@/lib/express';
+import { docEnable } from '@/lib/config/env.config';
 
 const router = express.Router();
 

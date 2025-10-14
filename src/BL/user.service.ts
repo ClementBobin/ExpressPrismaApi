@@ -1,18 +1,22 @@
-import { hashPassword } from '../../lib/hash';
-import prisma from '../../lib/db/prismaClient';
-import { app } from '../../lib/express';
+import { hashPassword } from '@/lib/hash';
+import prisma from '@/lib/db/prismaClient';
+import { app } from '@/lib/express';
 import {
   type CreateUserSchemaType,
   CreateUserResponseSchema,
-} from './user.schema';
+} from '@/DTO/user.schema';
 
 export async function createUser(input: CreateUserSchemaType) {
-  const { password, ...rest } = input;
-
+  const { email, name, password } = input;
   const { hash, salt } = hashPassword(password);
 
   const user = await prisma.users.create({
-    data: { ...rest, salt, password: hash },
+    data: {
+      email,
+      name,
+      password: hash,
+      salt,
+    },
     select: {
       id: true,
       email: true,

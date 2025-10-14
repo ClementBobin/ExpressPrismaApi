@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createResponseSchema } from '../../lib/docs/server.schema';
+import { createResponseSchema } from './server.schema';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
 // Extend Zod with OpenAPI capabilities

@@ -1,5 +1,5 @@
 import helmet from 'helmet';
-import { nodeEnv } from '../config/env.config';
+import { nodeEnv } from '@/lib/config/env.config';
 
 export const configureHelmet = () => {
   const isProd = nodeEnv === 'production';

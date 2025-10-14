@@ -2,7 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 
 // Import the server and app instances from the express setup
-import { app, closeServer } from '../express';
+import { app, closeServer } from '@/lib/express';
 
 // Middleware to automatically update the `UpdatedAt` field before update operations
 const prisma = new PrismaClient({

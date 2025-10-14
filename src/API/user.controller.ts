@@ -1,14 +1,14 @@
 import { Request, Response, RequestHandler } from 'express';
-import { app } from '../../lib/express';
+import { app } from '@/lib/express';
 import { z } from 'zod'; // Importing zod for validation
-import { verifyPassword } from '../../lib/hash';
+import { verifyPassword } from '@/lib/hash';
 import {
   type CreateUserSchemaType,
   type LoginSchemaType,
   CreateUserSchema,
   LoginSchema,
-} from './user.schema';
-import { createUser, findUserByEmail, findUsers, findUserById } from './user.service';
+} from '@/DTO/user.schema';
+import { createUser, findUserByEmail, findUsers, findUserById } from '@/BL/user.service';
 
 export const registerUserHandler: RequestHandler = async (
   request: Request<{}, {}, CreateUserSchemaType>,
