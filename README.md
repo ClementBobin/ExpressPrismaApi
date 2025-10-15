@@ -1,5 +1,7 @@
 # NodeJs API with Prisma
 
+<!-- COVERAGE_BADGE_PLACEHOLDER -->
+
 This project is a basic Node.js API built with **Express** and **Prisma**. It includes basic functionality for fetching users from a database and tests for the API endpoints.
 
 ## Technologies Used
