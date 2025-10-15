@@ -16,7 +16,7 @@ module.exports = [
       "@typescript-eslint": require("@typescript-eslint/eslint-plugin"),
     },
     rules: {
-      "no-unused-vars": "warn",
+      "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
       "no-console": "off",
       "semi": ["error", "always"],
       "quotes": ["error", "single"],
