@@ -21,6 +21,8 @@ WORKDIR /usr/src/app
 
 # Copy only package files for prod deps
 COPY package*.json ./
+COPY prisma ./prisma
+
 RUN npm ci --omit=dev
 
 # ---------- 3️⃣ Final Runtime Stage ----------
