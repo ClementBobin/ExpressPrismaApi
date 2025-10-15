@@ -9,7 +9,6 @@ import {
 } from '@/DTO/server.schema';
 import { apiReference } from '@scalar/express-api-reference';
 import { docs } from '@/lib/docs/docOpenApi';
-import { app } from '@/lib/express';
 import { docEnable } from '@/lib/config/env.config';
 
 const router = express.Router();
@@ -74,7 +73,7 @@ if (docEnable) {
   });
 
   // OpenAPI JSON route
-  router.get('/openapi.json', (req, res) => {
+  router.get('/openapi.json', (_req, res) => {
     const openApiDocument = docs();
     res.json(openApiDocument);
   });
