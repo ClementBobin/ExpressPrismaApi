@@ -18,11 +18,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🧰 Set up Docker Buildx
+      # 🧰 Set up Docker Buildx with the container driver
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
 
-      # 🧱 Cache Docker layers for faster rebuilds
+      # 🧱 Cache Docker layers
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -31,7 +35,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      # 🪣 Log in to GitHub Container Registry (GHCR)
+      # 🔐 Log in to GitHub Container Registry (GHCR)
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -39,29 +43,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 🏗️ Build Docker image
+      # 🏗️ Build Docker image with caching
       - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          tags: ghcr.io/${{ github.repository }}/express-api:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      # Move updated cache (Buildx quirk)
+      - name: Move build cache
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository }}/express-api:latest
-          echo "Building $IMAGE_NAME ..."
-          docker build \
-            --file Dockerfile \
-            --tag $IMAGE_NAME \
-            --cache-from type=local,src=/tmp/.buildx-cache \
-            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            .
+          rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      # 🚀 Push Docker image to GHCR
+      # 🚀 Push Docker image
       - name: Push Docker image
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository }}/express-api:latest
-          echo "Pushing $IMAGE_NAME ..."
-          docker push $IMAGE_NAME
+          docker push ghcr.io/${{ github.repository }}/express-api:latest
 
       # 📏 Show final image size
       - name: Show image size
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository }}/express-api:latest
-          echo "Image size:"
-          docker images $IMAGE_NAME --format "{{.Repository}}:{{.Tag}} -> {{.Size}}"
+          docker images ghcr.io/${{ github.repository }}/express-api:latest --format "=> {{.Repository}}:{{.Tag}} ({{.Size}})"
