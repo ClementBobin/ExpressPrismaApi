@@ -6,6 +6,7 @@ WORKDIR /usr/src/app
 
 # Copy dependency files first (better caching)
 COPY package*.json tsconfig*.json ./
+COPY prisma ./prisma
 
 # Install dependencies for building
 RUN npm ci
