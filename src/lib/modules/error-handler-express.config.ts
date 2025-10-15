@@ -1,4 +1,4 @@
-import { ErrorRequestHandler } from 'express';
+import type { ErrorRequestHandler } from 'express';
 import type { Logger } from 'winston';
 
 export const configureErrorHandler = (logger: Logger): ErrorRequestHandler => {

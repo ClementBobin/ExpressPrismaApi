@@ -118,7 +118,7 @@ logger.trackOperationTime = async function<T>(operation: Promise<T>, operationNa
   // Get the stack trace to extract file and function name
   const stack = new Error().stack || '';
   const stackLines = stack.split('\n');
-  const callerLine = stackLines[2]; // The 2nd line of the stack trace is where the function was called from
+  const callerLine = stackLines[2] || ''; // The 2nd line of the stack trace is where the function was called from
 
   // Extract file and function name from the stack trace line
   const match = callerLine.match(/at\s+([^(]+)\s+\(([^:]+):(\d+):(\d+)\)/);

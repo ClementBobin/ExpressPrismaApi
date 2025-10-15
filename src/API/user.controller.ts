@@ -1,4 +1,4 @@
-import { Request, Response, RequestHandler } from 'express';
+import type { Request, Response, RequestHandler } from 'express';
 import { app } from '@/lib/express';
 import { z } from 'zod'; // Importing zod for validation
 import { verifyPassword } from '@/lib/hash';
@@ -65,7 +65,7 @@ export const loginHandler: RequestHandler = async (
 };
 
 export const getUsersHandler: RequestHandler = async (
-  request: Request,
+  _request: Request,
   reply: Response
 ): Promise<void> => {
   const users = await findUsers();

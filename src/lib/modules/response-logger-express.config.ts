@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import type { Logger } from 'winston';
 
 export const configureResponseLogger = (logger: Logger) => {
