@@ -61,7 +61,7 @@ jobs:
 
     # ---------- Post PR Comment ----------
     - name: Post PR Comment
-      run: node ./.github/workflows/scripts/post-pr-comment-test.js
+      run: node ./.github/workflows/scripts/post-pr-comment-test.cjs
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_REPOSITORY: ${{ github.repository }}
