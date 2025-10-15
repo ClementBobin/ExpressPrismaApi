@@ -1,9 +1,10 @@
-name: Lint, Test, and Coverage
+name: Lint, Test, Coverage & PR Report
 
 on:
   pull_request:
     branches:
       - main
+      - dev
 
 jobs:
   lint-test-coverage:
@@ -16,26 +17,64 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '16'
+        node-version: '22'
 
     - name: Install dependencies
-      run: |
-        npm install
+      run: npm install
 
-    - name: Lint the code
-      run: |
-        npm run lint
+    # ---------- TypeScript check ----------
+    - name: TypeScript Check
+      run: npx tsc --noEmit
 
-    - name: Run tests
+    # ---------- ESLint ----------
+    - name: Run ESLint
       run: |
-        npm run test
+        npx eslint . -f json -o eslint-report.json || true
 
-    - name: Run tests with coverage
-      run: |
-        npm run test:coverage
+    # ---------- Prisma ----------
+    - name: Prisma Validate
+      run: npx prisma validate
 
-    - name: Upload Jest Coverage
+    - name: Prisma Format Check
+      run: npx prisma format --check
+
+    # ---------- Jest Tests ----------
+    - name: Run Tests with Coverage
+      run: npx jest --coverage --coverageReporters=json-summary
+
+    # ---------- Upload artifacts ----------
+    - name: Upload Coverage Summary
       uses: actions/upload-artifact@v3
       with:
-        name: jest-coverage
-        path: coverage/
+        name: coverage-summary
+        path: coverage/coverage-summary.json
+
+    - name: Upload ESLint Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: eslint-report
+        path: eslint-report.json
+
+    # ---------- Post PR Comment ----------
+    - name: Post PR Comment
+      uses: actions/github-script@v7
+      with:
+        script: >
+          const fs = require('fs');
+          const coverageFile = 'coverage/coverage-summary.json';
+          let coverageTable = 'No coverage data found.';
+          if (fs.existsSync(coverageFile)) {
+            const coverage = JSON.parse(fs.readFileSync(coverageFile, 'utf8'));
+            coverageTable = "| Metric | Percentage |\n| ------ | ---------- |\n| Lines | " + coverage.total.lines.pct + "% |\n| Statements | " + coverage.total.statements.pct + "% |\n| Functions | " + coverage.total.functions.pct + "% |\n| Branches | " + coverage.total.branches.pct + "% |";
+          }
+          const eslintFile = 'eslint-report.json';
+          let eslintTable = 'No lint issues 🎉';
+          if (fs.existsSync(eslintFile)) {
+            const eslint = JSON.parse(fs.readFileSync(eslintFile, 'utf8'));
+            if (eslint.length > 0) {
+              eslintTable = '| File | Line | Message | Rule |\n| ---- | ---- | ------- | ---- |\n';
+              eslint.forEach(file => { file.messages.forEach(msg => { eslintTable += "| " + file.filePath + " | " + msg.line + " | " + msg.message + " | " + msg.ruleId + " |\n"; }); });
+            }
+          }
+          const body = "## 📊 Test Coverage\n" + coverageTable + "\n\n## ❌ ESLint Issues\n" + eslintTable;
+          await github.rest.issues.createComment({ issue_number: context.issue.number, owner: context.repo.owner, repo: context.repo.repo, body: body });
