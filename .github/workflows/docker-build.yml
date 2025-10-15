@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - dev
-  release:
-    types: [published]  # Triggered by semantic-release releases
+    tags:
+      - 'v*.*.*'
 
 permissions:
   contents: read
