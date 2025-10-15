@@ -1,5 +1,5 @@
 import cors from 'cors';
-import { nodeEnv, allowedOrigins } from '../config/env.config';
+import { nodeEnv, allowedOrigins } from '@/lib/config/env.config';
 import type { Logger } from 'winston';
 
 export const configureCors = (logger: Logger) => {

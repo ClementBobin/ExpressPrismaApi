@@ -1,6 +1,6 @@
 import { auth } from 'express-oauth2-jwt-bearer';
-import { Request, Response, NextFunction } from 'express';
-import {  app } from '../express';
+import type { Request, Response, NextFunction } from 'express';
+import {  app } from '@/lib/express';
 
 // Configure OAuth2 JWT validation
 const authenticateOAuth2 = auth({
@@ -9,10 +9,11 @@ const authenticateOAuth2 = auth({
 });
 
 // Optionally handle errors cleanly
-const handleAuthErrors = (err: any, req: Request, res: Response, next: NextFunction) => {
+const handleAuthErrors = (err: any, _req: Request, res: Response, next: NextFunction): void => {
   if (err.name === 'UnauthorizedError') {
     app.logger.warn(`Unauthorized access attempt: ${err.message}`);
-    return res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
   }
 
   next(err);

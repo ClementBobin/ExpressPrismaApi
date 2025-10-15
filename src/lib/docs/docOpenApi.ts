@@ -1,7 +1,7 @@
 // Import the OpenAPI registry from the local file
 import registry from './openAPIRegistry';
 
-import { httpsPort, url, packageJson, productionUrl } from '../config/env.config';
+import { httpsPort, url, packageJson, productionUrl } from '@/lib/config/env.config';
 
 // Import the OpenApiGeneratorV3 class from the zod-to-openapi package
 import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
