@@ -6,6 +6,8 @@ export const mockRequest = (options: Partial<Request> = {}): Request => {
     headers: {},
     method: 'GET',
     originalUrl: '/test',
+    params: {},
+    body: {},
     ...options,
   } as Request;
 };
@@ -14,6 +16,7 @@ export const mockResponse = (options: Partial<Response> = {}): Response => {
   const res: Partial<Response> = {
     json: jest.fn().mockReturnThis(),
     status: jest.fn().mockReturnThis(),
+    send: jest.fn().mockReturnThis(),
     setHeader: jest.fn(),
     removeHeader: jest.fn(),
     on: jest.fn(),
