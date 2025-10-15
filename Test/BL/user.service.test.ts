@@ -1,6 +1,7 @@
 import { createUser, findUserByEmail, findUsers, findUserById } from '@/BL/user.service';
-import { mockUserWithId } from '../../../__mocks__/mockService';
-import { prismaMock } from '../../../__mocks__/singleton';
+import { mockUserWithId } from '../../__mocks__/mockService';
+import { prismaMock } from '../../__mocks__/singleton';
+
 describe('User Service', () => {
   describe('createUser', () => {
     it('should create a new user', async () => {

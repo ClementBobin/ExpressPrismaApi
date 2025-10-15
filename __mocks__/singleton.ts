@@ -1,5 +1,5 @@
 // Importing PrismaClient from the Prisma package
-import { PrismaClient } from '@/DAL/prisma';
+import { PrismaClient } from '@prisma/client';
 
 // Importing mockDeep and mockReset functions, and DeepMockProxy type from jest-mock-extended package
 import { mockDeep, mockReset, DeepMockProxy } from 'jest-mock-extended';

@@ -1,5 +1,5 @@
 // Import the PrismaClient class from the @prisma/client package
-import { PrismaClient } from './prisma/index.js';
+import { PrismaClient } from '@prisma/client';
 
 // Import the server and app instances from the express setup
 import { app, closeServer } from '@/lib/express';

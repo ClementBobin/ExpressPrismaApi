@@ -1,26 +1,11 @@
-import prisma from '@/DAL';
-import { closeServer } from '../src/lib/express';
+import prisma from '@/DAL/prismaClient';
+import { closeServer } from '@/lib/express';
 import {
-  capteurTypes,
-  sites,
-  capteurs,
-  siteHasCapteurs,
-  releverCapteurs,
+  users
 } from '../__mocks__/mockSchema';
 
 async function main() {
-  await prisma.capteurType.createMany({ data: capteurTypes });
-
-  await prisma.site.createMany({ data: sites });
-
-  const capteurData = capteurs(capteurTypes);
-  await prisma.capteur.createMany({ data: capteurData });
-
-  const siteHasCapteurData = siteHasCapteurs(capteurData, sites);
-  await prisma.siteHasCapteur.createMany({ data: siteHasCapteurData });
-
-  const releverCapteurData = releverCapteurs(capteurData);
-  await prisma.releverCapteur.createMany({ data: releverCapteurData });
+  await prisma.users.createMany({ data: users });
 }
 
 // Execute the main function and handle errors

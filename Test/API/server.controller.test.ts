@@ -1,5 +1,5 @@
 import { healthController } from '@/API/server.controller';
-import { mockRequest, mockResponse, mockNext } from '../../../__mocks__/test-utils';
+import { mockRequest, mockResponse, mockNext } from '../../__mocks__/test-utils';
 import { HealthCheck } from '@/DTO/server.schema';
 
 describe('healthController', () => {

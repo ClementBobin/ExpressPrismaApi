@@ -7,3 +7,4 @@ coverage
 # Generated Prisma files
 src/DAL/prisma/*.js
 src/DAL/prisma/*.node
+*.db

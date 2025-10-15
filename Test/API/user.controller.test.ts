@@ -1,12 +1,11 @@
-import request from 'supertest';
 import { app } from '@/lib/express';
 import userRoutes from '@/API/routes/user.routes';
 import { createUser, findUserByEmail, findUsers, findUserById } from '@/BL/user.service';
 import { verifyPassword } from '@/lib/hash';
-import { mockUserWithId } from '../../../__mocks__/mockService';
+import { mockUserWithId } from '../../__mocks__/mockService';
 
-jest.mock('./user.service');
-jest.mock('../../lib/hash');
+jest.mock('@/BL/user.service');
+jest.mock('@/lib/hash');
 
 app.use('/api', userRoutes);
 
