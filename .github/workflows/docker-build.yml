@@ -1,32 +1,40 @@
-name: Build Docker Image for Production
+name: 🐳 Build & Push Docker Images
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - dev
+  release:
+    types: [published]  # Triggered by semantic-release releases
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  build:
+  docker:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-      # 🧩 Checkout code
-      - name: Checkout code
+      # 1️⃣ Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 🧰 Set up Docker Buildx (container driver supports caching)
+      # 2️⃣ Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            image=moby/buildkit:latest
-            network=host
 
-      # 🧱 Cache Docker layers for faster rebuilds
+      # 3️⃣ Login to GHCR
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 4️⃣ Cache Docker layers
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -35,56 +43,46 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      # 🔐 Log in to GitHub Container Registry
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # 🏗️ Build & push Docker image
-      - name: Build and push Docker image
-        env:
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+      # 5️⃣ Determine Docker tags
+      - name: Determine Docker tags
+        id: vars
         run: |
-          # Normalize repo name (lowercase for GHCR)
-          REPO_LC=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
+          REPO_LC=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          
+          if [[ "${GITHUB_REF}" == refs/heads/dev ]]; then
+            # Dev branch: dev + short SHA
+            TAGS="dev,${GITHUB_SHA::7}"
+          
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            # Release event: use GitHub release tag
+            TAG="${GITHUB_REF##refs/tags/}"
+            TAGS="$TAG,latest"
+          
+          else
+            TAGS="${GITHUB_SHA::7}"
+          fi
 
-          # Define tags
-          IMAGE_BASE="ghcr.io/${REPO_LC}/express-api"
-          IMAGE_LATEST="${IMAGE_BASE}:latest"
-          IMAGE_SHA="${IMAGE_BASE}:${SHA::7}"
-          IMAGE_PR="${IMAGE_BASE}:pr-${PR_NUMBER}"
+          echo "repo=$REPO_LC" >> $GITHUB_OUTPUT
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
-          echo "Building and pushing:"
-          echo "- $IMAGE_LATEST"
-          echo "- $IMAGE_SHA"
-          echo "- $IMAGE_PR"
-
-          docker buildx build \
-            --file Dockerfile \
-            --tag "$IMAGE_LATEST" \
-            --tag "$IMAGE_SHA" \
-            --tag "$IMAGE_PR" \
-            --cache-from type=local,src=/tmp/.buildx-cache \
-            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            --push \
-            .
-
-          # Move updated cache
+      # 6️⃣ Build & push Docker images
+      - name: Build & Push Docker image
+        run: |
+          IFS=',' read -ra TAG_ARRAY <<< "${{ steps.vars.outputs.tags }}"
+          for TAG in "${TAG_ARRAY[@]}"; do
+            echo "Building and pushing tag: $TAG"
+            docker buildx build \
+              --file Dockerfile \
+              --tag ghcr.io/${{ steps.vars.outputs.repo }}/express-api:$TAG \
+              --cache-from type=local,src=/tmp/.buildx-cache \
+              --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+              --push .
+          done
+          # Update cache
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      # 📏 Show image sizes
-      - name: Show image sizes
-        env:
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+      # 7️⃣ Show built images info
+      - name: Show image info
         run: |
-          REPO_LC=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
-          IMAGE_BASE="ghcr.io/${REPO_LC}/express-api"
-          docker images "$IMAGE_BASE" --format "=> {{.Repository}}:{{.Tag}} ({{.Size}})"
+          docker buildx imagetools inspect ghcr.io/${{ steps.vars.outputs.repo }}/express-api:latest || true
