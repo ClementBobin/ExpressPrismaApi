@@ -1,6 +1,6 @@
 module.exports = [
   {
-    ignores: ["dist/**", "coverage/**", "node_modules/**"], // exclude build outputs and coverage
+    ignores: ["dist/**", "coverage/**", "node_modules/**", "src/DAL/prisma/**"], // exclude build outputs, coverage, and generated Prisma files
   },
   {
     files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
