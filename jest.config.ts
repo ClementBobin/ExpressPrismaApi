@@ -17,7 +17,7 @@ export default {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   setupFilesAfterEnv: [
-    '<rootDir>/src/lib/db/singleton.ts',
+    '<rootDir>/__mocks__/singleton.ts',
     '<rootDir>/__mocks__/jest.setup.ts'
   ],
   clearMocks: true,

@@ -1,4 +1,4 @@
-import prisma from '../src/lib/db/PrismaClient';
+import prisma from '@/DAL';
 import { closeServer } from '../src/lib/express';
 import {
   capteurTypes,

@@ -1,5 +1,5 @@
 import { hashPassword } from '@/lib/hash';
-import prisma from '@/lib/db/prismaClient';
+import prisma from '@/DAL/prismaClient';
 import { app } from '@/lib/express';
 import {
   type CreateUserSchemaType,
