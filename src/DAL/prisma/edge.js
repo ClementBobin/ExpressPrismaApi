@@ -178,7 +178,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/workspaces/ExpressPrismaApi/src/DAL/prisma",
+      "value": "/home/runner/work/ExpressPrismaApi/ExpressPrismaApi/src/DAL/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -187,12 +187,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "debian-openssl-1.1.x",
+        "value": "debian-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/workspaces/ExpressPrismaApi/prisma/schema.prisma",
+    "sourceFilePath": "/home/runner/work/ExpressPrismaApi/ExpressPrismaApi/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -205,6 +205,8 @@ const config = {
     "db"
   ],
   "activeProvider": "sqlite",
+  "postinstall": false,
+  "ciName": "GitHub Actions",
   "inlineDatasources": {
     "db": {
       "url": {
