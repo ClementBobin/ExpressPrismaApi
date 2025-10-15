@@ -50,7 +50,7 @@ jobs:
         path: coverage/coverage-summary.json
 
     - name: Upload ESLint Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: eslint-report
         path: eslint-report.json
