@@ -3,7 +3,10 @@ import {
     registerUserHandler,
     loginHandler,
     getUsersHandler,
-    getUserByIdHandler
+    getUserByIdHandler,
+    validateCreateUser,
+    validateLogin,
+    validateUserId
 } from '../user.controller';
 import registry from '@/lib/docs/openAPIRegistry';
 import { ResponseError } from '@/DTO/server.schema';
@@ -58,7 +61,8 @@ registry.registerPath({
         },
     },
 });
-router.post('/', registerUserHandler);
+// Apply Zod validation middleware before the handler
+router.post('/', validateCreateUser, registerUserHandler);
 
 registry.registerPath({
     method: 'post',
@@ -102,7 +106,8 @@ registry.registerPath({
     },
 });
 
-router.post('/auth/login', loginHandler);
+// Apply Zod validation middleware before the handler
+router.post('/auth/login', validateLogin, loginHandler);
 
 registry.registerPath({
     method: 'get',
@@ -174,6 +179,7 @@ registry.registerPath({
         },
     },
 });
-router.get('/:id', getUserByIdHandler);
+// Apply Zod validation middleware before the handler
+router.get('/:id', validateUserId, getUserByIdHandler);
 
 export default router;

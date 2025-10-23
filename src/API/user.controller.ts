@@ -9,19 +9,19 @@ import {
   LoginSchema,
 } from '@/DTO/user.schema';
 import { createUser, findUserByEmail, findUsers, findUserById } from '@/BL/user.service';
+import { validateRequest } from '@/lib/modules/zod-validator-express.config';
+
+// Middleware validators for user routes
+export const validateCreateUser = validateRequest('body', CreateUserSchema, app.logger);
+export const validateLogin = validateRequest('body', LoginSchema, app.logger);
+export const validateUserId = validateRequest('params', z.object({ id: z.string() }), app.logger);
 
 export const registerUserHandler: RequestHandler = async (
   request: Request<{}, {}, CreateUserSchemaType>,
   reply: Response
 ): Promise<void> => {
   try {
-    // Validate request body against CreateUserSchema
-    const parsedBody = CreateUserSchema.safeParse(request.body);
-    if (!parsedBody.success) {
-      app.logger.logWithErrorHandling('Invalid request body:', parsedBody.error, false, 'warn'); // Logging validation error
-      reply.status(400).json({ isSuccess: false, message: 'Invalid request body', error: parsedBody.error }); // Sending error response
-      return; // ✅ Explicitly stop execution
-    }
+    // Body validation is now handled by the middleware
     // Wrap the DB operation to track time
     const user = await app.logger.trackOperationTime(createUser(request.body), 'createUser DB Operation');
     reply.status(201).send(user);
@@ -35,14 +35,7 @@ export const loginHandler: RequestHandler = async (
   request: Request<{}, {}, LoginSchemaType>,
   reply: Response
 ): Promise<void> => {
-  // Validate request body against LoginSchema
-  const parsedBody = LoginSchema.safeParse(request.body);
-  if (!parsedBody.success) {
-    app.logger.logWithErrorHandling('Invalid request body:', parsedBody.error, false, 'warn'); // Logging validation error
-    reply.status(400).json({ isSuccess: false, message: 'Invalid request body', error: parsedBody.error }); // Sending error response
-    return; // ✅ Explicitly stop execution
-  }
-
+  // Body validation is now handled by the middleware
   const user = await app.logger.trackOperationTime(findUserByEmail(request.body.email), 'RequestHandler');
 
   if (!user) {
@@ -76,6 +69,7 @@ export const getUserByIdHandler: RequestHandler<{ id: string }> = async (
   request: Request<{ id: string }>,
   reply: Response
 ): Promise<void> => {
+  // Params validation is now handled by the middleware
   const userId = parseInt(request.params.id, 10);
 
   const validUserId = z.number().safeParse(userId); // Validating userId using zod

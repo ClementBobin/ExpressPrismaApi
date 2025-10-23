@@ -2,6 +2,10 @@ import type { Request, Response, RequestHandler } from 'express';
 import { app } from '@/lib/express';
 import { packageJson, nodeEnv } from '@/lib/config/env.config';
 import { HealthCheck } from '@/DTO/server.schema';
+import { validateResponse } from '@/lib/modules/zod-validator-express.config';
+
+// Middleware to validate the health check response using Zod
+export const healthCheckValidator = validateResponse(HealthCheck, app.logger);
 
 export const healthController: RequestHandler = async (
     _request: Request,
@@ -20,13 +24,7 @@ export const healthController: RequestHandler = async (
             unix: new Date().getTime()
         };
 
-        const ValidateHealthCheck = HealthCheck.strict().safeParse(result); // Validate the health check response
-        if (!ValidateHealthCheck.success) {
-            app.logger.logWithErrorHandling('Invalid health check response:', ValidateHealthCheck.error, false, 'warn'); // Log validation error
-            reply.status(500).json({ isSuccess: false, message: 'Internal server error', error: ValidateHealthCheck.error }); // Send error response
-            return;
-        }
-
+        // Response validation is now handled by the middleware
         reply.status(200).json(result); // Send the health check response
     } catch (e) {
         app.logger.logWithErrorHandling('Error in health check endpoint:', e); // Log unexpected errors
