@@ -30,7 +30,7 @@ declare global {
 
 const app = express();
 
-app.set('trust proxy', true);
+app.set('trust proxy', process.env.NODE_ENV === 'production');
 
 // Attach logger to app
 app.logger = logger;
