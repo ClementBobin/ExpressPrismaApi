@@ -1,6 +1,7 @@
 import express from 'express';
 import {
-  healthController
+  healthController,
+  healthCheckValidator
 } from '@/API/server.controller';
 import registry from '@/lib/docs/openAPIRegistry';
 import { ResponseError } from '@/DTO/server.schema';
@@ -39,7 +40,8 @@ registry.registerPath({
     },
   });
   
-router.get('/health', healthController);
+// Apply the Zod validation middleware before the controller
+router.get('/health', healthCheckValidator, healthController);
 
 if (docEnable) {
   registry.registerPath({

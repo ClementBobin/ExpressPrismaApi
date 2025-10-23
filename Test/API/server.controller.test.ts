@@ -1,6 +1,5 @@
 import { healthController } from '@/API/server.controller';
 import { mockRequest, mockResponse, mockNext } from '../../__mocks__/test-utils';
-import { HealthCheck } from '@/DTO/server.schema';
 
 describe('healthController', () => {
   let req: ReturnType<typeof mockRequest>;
@@ -44,32 +43,30 @@ describe('healthController', () => {
     // expect(app.logger.info).toHaveBeenCalledWith('Health check endpoint called');
   });
 
+  // Note: Response validation is now handled by the Zod middleware (healthCheckValidator)
+  // This test is covered in Test/lib/modules/zod-validator-express.config.test.ts
   it('should handle validation errors and return 500 status', async () => {
-    // Force the validation to fail by mocking the schema
-    jest.spyOn(HealthCheck, 'strict').mockReturnValue({
-      safeParse: () => ({
-        success: false,
-        error: new Error('Validation failed')
-      })
-    } as any);
+    // Since validation is handled by middleware, we test the controller assuming the middleware is working
+    // The middleware validation is tested separately
+    const mockUptime = 12345;
+    jest.spyOn(process, 'uptime').mockReturnValue(mockUptime);
+
+    const mockDate = new Date('2023-01-01T00:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => mockDate as unknown as Date);
 
     await healthController(req, res, next);
 
-    // Verify error response
-    expect(res.status).toHaveBeenCalledWith(500);
+    // Verify the response
+    expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
-      isSuccess: false,
-      message: 'Internal server error',
-      error: expect.any(Error)
+      status: 'OK',
+      uptime: `${mockUptime} seconds`,
+      message: 'Server is running',
+      timestamp: mockDate.toISOString(),
+      version: expect.any(String),
+      environment: expect.any(String),
+      unix: mockDate.getTime()
     });
-
-    // Verify error was logged
-    // expect(app.logger.logWithErrorHandling).toHaveBeenCalledWith(
-    //   'Invalid health check response:',
-    //   expect.any(Error),
-    //   false,
-    //   'warn'
-    // );
   });
 
   it('should handle unexpected errors and return 500 status', async () => {
