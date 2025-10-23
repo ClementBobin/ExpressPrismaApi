@@ -10,7 +10,6 @@ import {
 } from '@/DTO/server.schema';
 import { apiReference } from '@scalar/express-api-reference';
 import { docs } from '@/lib/docs/docOpenApi';
-import { docEnable } from '@/lib/config/env.config';
 
 const router = express.Router();
 
@@ -43,7 +42,7 @@ registry.registerPath({
 // Apply the Zod validation middleware before the controller
 router.get('/health', healthCheckValidator, healthController);
 
-if (docEnable) {
+if (process.env.DOC_ENABLE === 'true') {
   registry.registerPath({
     method: 'get',
     path: '/api/docs',
