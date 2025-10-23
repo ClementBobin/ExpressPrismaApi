@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import type { Logger } from 'winston';
-import { ZodTypeAny, ZodError } from 'zod';
+import { type ZodTypeAny, ZodError } from 'zod';
 
 export type ValidationTarget = 'body' | 'params' | 'query' | 'headers';
 
