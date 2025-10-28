@@ -1,6 +1,15 @@
 import { z } from 'zod';
 import { createZodValidator, validateRequest, validateResponse } from '@/lib/modules/zod-validator-express.config';
 import { mockRequest, mockResponse, mockNext, mockLogger } from '../../../__mocks__/test-utils';
+import registry from '@/lib/docs/openAPIRegistry';
+
+// Mock the registry
+jest.mock('@/lib/docs/openAPIRegistry', () => ({
+  __esModule: true,
+  default: {
+    registerPath: jest.fn()
+  }
+}));
 
 describe('Zod Validator Middleware', () => {
   let req: ReturnType<typeof mockRequest>;
@@ -453,6 +462,275 @@ describe('Zod Validator Middleware', () => {
 
       expect(next).toHaveBeenCalled();
       expect(res.status).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('OpenAPI automatic registration', () => {
+    it('should automatically register path with OpenAPI registry when metadata is provided', async () => {
+      const bodySchema = z.object({
+        name: z.string(),
+        email: z.string().email()
+      });
+
+      const middleware = createZodValidator({
+        schemas: { body: bodySchema },
+        logger,
+        openapi: {
+          method: 'post',
+          path: '/api/users',
+          summary: 'Create a user',
+          tags: ['Users'],
+          responses: {
+            200: {
+              description: 'Success',
+              content: {
+                'application/json': {
+                  schema: z.object({ id: z.number() })
+                }
+              }
+            }
+          }
+        }
+      });
+
+      expect(registry.registerPath).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'post',
+          path: '/api/users',
+          summary: 'Create a user',
+          tags: ['Users'],
+          request: {
+            body: {
+              content: {
+                'application/json': {
+                  schema: bodySchema
+                }
+              }
+            }
+          },
+          responses: expect.any(Object)
+        })
+      );
+
+      // Middleware should still function normally
+      req.body = { name: 'John', email: 'john@example.com' };
+      await middleware(req, res, next);
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should register path with params schema when provided', async () => {
+      const paramsSchema = z.object({
+        id: z.string()
+      });
+
+      createZodValidator({
+        schemas: { params: paramsSchema },
+        logger,
+        openapi: {
+          method: 'get',
+          path: '/api/users/{id}',
+          summary: 'Get user by ID',
+          tags: ['Users'],
+          responses: {
+            200: {
+              description: 'User found'
+            }
+          }
+        }
+      });
+
+      expect(registry.registerPath).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'get',
+          path: '/api/users/{id}',
+          request: expect.objectContaining({
+            params: paramsSchema
+          })
+        })
+      );
+    });
+
+    it('should register path with query schema when provided', async () => {
+      const querySchema = z.object({
+        page: z.string(),
+        limit: z.string()
+      });
+
+      createZodValidator({
+        schemas: { query: querySchema },
+        logger,
+        openapi: {
+          method: 'get',
+          path: '/api/users',
+          summary: 'List users',
+          tags: ['Users'],
+          responses: {
+            200: {
+              description: 'Users list'
+            }
+          }
+        }
+      });
+
+      expect(registry.registerPath).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'get',
+          path: '/api/users',
+          request: expect.objectContaining({
+            query: querySchema
+          })
+        })
+      );
+    });
+
+    it('should register path with multiple schemas (body, params, query)', async () => {
+      const bodySchema = z.object({ name: z.string() });
+      const paramsSchema = z.object({ id: z.string() });
+      const querySchema = z.object({ page: z.string() });
+
+      createZodValidator({
+        schemas: {
+          body: bodySchema,
+          params: paramsSchema,
+          query: querySchema
+        },
+        logger,
+        openapi: {
+          method: 'put',
+          path: '/api/users/{id}',
+          summary: 'Update user',
+          tags: ['Users'],
+          responses: {
+            200: {
+              description: 'Updated'
+            }
+          }
+        }
+      });
+
+      expect(registry.registerPath).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'put',
+          path: '/api/users/{id}',
+          request: expect.objectContaining({
+            body: expect.any(Object),
+            params: paramsSchema,
+            query: querySchema
+          })
+        })
+      );
+    });
+
+    it('should handle different response types in OpenAPI registration', async () => {
+      const bodySchema = z.object({ name: z.string() });
+
+      createZodValidator({
+        schemas: { body: bodySchema },
+        logger,
+        openapi: {
+          method: 'post',
+          path: '/api/items',
+          summary: 'Create item',
+          responses: {
+            200: {
+              description: 'Success response',
+              content: {
+                'application/json': {
+                  schema: z.object({ id: z.number(), name: z.string() })
+                }
+              }
+            },
+            400: {
+              description: 'Bad request',
+              content: {
+                'application/json': {
+                  schema: z.object({ error: z.string() })
+                }
+              }
+            },
+            500: {
+              description: 'Server error',
+              content: {
+                'application/json': {
+                  schema: z.object({ error: z.string() })
+                }
+              }
+            }
+          }
+        }
+      });
+
+      expect(registry.registerPath).toHaveBeenCalledWith(
+        expect.objectContaining({
+          responses: expect.objectContaining({
+            200: expect.any(Object),
+            400: expect.any(Object),
+            500: expect.any(Object)
+          })
+        })
+      );
+    });
+
+    it('should not register path if openapi metadata is not provided', async () => {
+      const bodySchema = z.object({ name: z.string() });
+
+      const middleware = createZodValidator({
+        schemas: { body: bodySchema },
+        logger
+      });
+
+      expect(registry.registerPath).not.toHaveBeenCalled();
+
+      // Middleware should still function normally
+      req.body = { name: 'John' };
+      await middleware(req, res, next);
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should work with validateRequest helper and OpenAPI metadata', async () => {
+      const bodySchema = z.object({ email: z.string().email() });
+
+      validateRequest('body', bodySchema, logger, true, {
+        method: 'post',
+        path: '/api/subscribe',
+        summary: 'Subscribe user',
+        tags: ['Newsletter'],
+        responses: {
+          200: {
+            description: 'Subscribed'
+          }
+        }
+      });
+
+      expect(registry.registerPath).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'post',
+          path: '/api/subscribe',
+          summary: 'Subscribe user'
+        })
+      );
+    });
+
+    it('should work with validateResponse helper and OpenAPI metadata', async () => {
+      const responseSchema = z.object({ status: z.string() });
+
+      validateResponse(responseSchema, logger, true, {
+        method: 'get',
+        path: '/api/status',
+        summary: 'Get status',
+        responses: {
+          200: {
+            description: 'Status response'
+          }
+        }
+      });
+
+      expect(registry.registerPath).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'get',
+          path: '/api/status'
+        })
+      );
     });
   });
 });

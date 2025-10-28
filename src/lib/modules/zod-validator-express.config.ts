@@ -1,6 +1,8 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import type { Logger } from 'winston';
-import { type ZodTypeAny, ZodError } from 'zod';
+import { type ZodTypeAny, ZodError, type AnyZodObject, type ZodEffects } from 'zod';
+import type { RouteConfig } from '@asteasolutions/zod-to-openapi';
+import registry from '@/lib/docs/openAPIRegistry';
 
 export type ValidationTarget = 'body' | 'params' | 'query' | 'headers';
 
@@ -12,19 +14,79 @@ export interface ValidationSchemas {
   response?: ZodTypeAny;
 }
 
+export interface OpenAPIMetadata {
+  method: 'get' | 'post' | 'put' | 'delete' | 'patch';
+  path: string;
+  summary?: string;
+  description?: string;
+  tags?: string[];
+  responses?: RouteConfig['responses'];
+}
+
 export interface ZodValidatorOptions {
   schemas: ValidationSchemas;
   logger?: Logger;
   strict?: boolean;
+  openapi?: OpenAPIMetadata;
 }
 
 /**
  * Creates a Zod validation middleware for Express
  * Automatically validates request body, params, query, and headers
  * Also validates response data if a response schema is provided
+ * Optionally registers the route with OpenAPI registry
  */
 export const createZodValidator = (options: ZodValidatorOptions): RequestHandler => {
-  const { schemas, logger, strict = true } = options;
+  const { schemas, logger, strict = true, openapi } = options;
+
+  // Automatically register the path in OpenAPI registry if metadata is provided
+  if (openapi) {
+    const routeConfig: RouteConfig = {
+      method: openapi.method,
+      path: openapi.path,
+      summary: openapi.summary,
+      description: openapi.description,
+      tags: openapi.tags,
+      responses: openapi.responses || {}
+    };
+
+    // Add request schemas if provided
+    const request: RouteConfig['request'] = {};
+
+    // Add request body schema if provided
+    if (schemas.body) {
+      request.body = {
+        content: {
+          'application/json': {
+            schema: schemas.body
+          }
+        }
+      };
+    }
+
+    // Add params schema if it's a ZodObject
+    if (schemas.params) {
+      request.params = schemas.params as AnyZodObject | ZodEffects<any, any, any>;
+    }
+
+    // Add query schema if it's a ZodObject
+    if (schemas.query) {
+      request.query = schemas.query as AnyZodObject | ZodEffects<any, any, any>;
+    }
+
+    // Add headers schema if it's a ZodObject
+    if (schemas.headers) {
+      request.headers = schemas.headers as AnyZodObject | ZodEffects<any, any, any>;
+    }
+
+    // Only add request if it has content
+    if (Object.keys(request).length > 0) {
+      routeConfig.request = request;
+    }
+
+    // Register the path with OpenAPI registry
+    registry.registerPath(routeConfig);
+  }
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -139,21 +201,34 @@ function formatZodError(error: ZodError): any {
 /**
  * Helper function to create a validator for a single validation target
  */
-export const validateRequest = (target: ValidationTarget, schema: ZodTypeAny, logger?: Logger, strict = true): RequestHandler => {
+export const validateRequest = (
+  target: ValidationTarget,
+  schema: ZodTypeAny,
+  logger?: Logger,
+  strict = true,
+  openapi?: OpenAPIMetadata
+): RequestHandler => {
   return createZodValidator({
     schemas: { [target]: schema },
     logger,
-    strict
+    strict,
+    openapi
   });
 };
 
 /**
  * Helper function to create a response validator
  */
-export const validateResponse = (schema: ZodTypeAny, logger?: Logger, strict = true): RequestHandler => {
+export const validateResponse = (
+  schema: ZodTypeAny,
+  logger?: Logger,
+  strict = true,
+  openapi?: OpenAPIMetadata
+): RequestHandler => {
   return createZodValidator({
     schemas: { response: schema },
     logger,
-    strict
+    strict,
+    openapi
   });
 };
