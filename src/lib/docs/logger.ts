@@ -102,7 +102,7 @@ logger.routeStart = function (req: any): string {
   const contentLength = req.headers['content-length'] || '0';
   
   // Log request start with comprehensive details
-  logger.info(`[HTTP Request Start] ${req.method} ${req.originalUrl} | Request ID: ${requestId} | Client IP: ${clientIp} | User-Agent: ${userAgent} | Auth: ${authHeader} | Content-Length: ${contentLength}bytes`);
+  logger.info(`[HTTP Request Start] ${req.method} ${req.originalUrl} | Request ID: ${requestId} | Client IP: ${clientIp} | User-Agent: ${userAgent} | Auth: ${authHeader} | Content-Length: ${contentLength} bytes`);
 
   return requestId; // Return request ID for later use in routeEnd
 };
@@ -119,7 +119,7 @@ logger.routeEnd = function (req: any, res: any, id: string, durationInMs: number
   const logLevel = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info';
   
   // Log request end with comprehensive details
-  logger.log(logLevel, `[HTTP Request End] ${req.method} ${req.originalUrl} | Request ID: ${id} | Status: ${statusCode} | Duration: ${durationInMs.toFixed(2)}ms | Client IP: ${clientIp} | Response Size: ${responseSize}bytes`);
+  logger.log(logLevel, `[HTTP Request End] ${req.method} ${req.originalUrl} | Request ID: ${id} | Status: ${statusCode} | Duration: ${durationInMs.toFixed(2)}ms | Client IP: ${clientIp} | Response Size: ${responseSize} bytes`);
 };
 
 // Implement logWithErrorHandling method to handle errors properly
