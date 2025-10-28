@@ -2,7 +2,7 @@
 
 <!-- COVERAGE_BADGE_PLACEHOLDER -->
 
-This project is a basic Node.js API built with **Express** and **Prisma**. It includes basic functionality for fetching users from a database and tests for the API endpoints.
+This project is a Node.js API built with **Express** and **Prisma**. It includes comprehensive logging, security monitoring, performance tracking, and user management functionality.
 
 ## Technologies Used
 
@@ -11,7 +11,21 @@ This project is a basic Node.js API built with **Express** and **Prisma**. It in
 - **Prisma**: ORM for interacting with the database.
 - **Jest**: Testing framework for writing unit and integration tests.
 - **TypeScript**: Typed superset of JavaScript.
+- **Winston**: Advanced logging library with rotation support.
 - **Supertest**: HTTP assertions library used for testing API endpoints.
+
+## Features
+
+- ✅ RESTful API with Express
+- ✅ Database ORM with Prisma
+- ✅ **Comprehensive HTTP Request Logging** (method, URL, status, response time, client IP, headers, response size)
+- ✅ **Error Tracking** with stack traces, correlation IDs, and context
+- ✅ **Security Event Logging** (authentication failures, access denied, brute force detection)
+- ✅ **Performance Metrics** (latency tracking, slow endpoint detection, usage spike detection)
+- ✅ **Business Action Audit** logging
+- ✅ Rate limiting and CORS protection
+- ✅ TypeScript for type safety
+- ✅ Comprehensive test coverage
   
 ## Installation
 
@@ -132,15 +146,33 @@ export default config;
 ## Directory Structure
 
 - **`src`**: Source code for the application.
-  - **`controllers`**: Contains logic for handling requests and interacting with the database.
-  - **`routes`**: Defines API routes and routes to controllers.
+  - **`API`**: API routes and controllers
+  - **`BL`**: Business logic layer (services)
+  - **`DAL`**: Data access layer (Prisma client)
+  - **`DTO`**: Data transfer objects and schemas (Zod)
+  - **`lib`**: Core libraries and configurations
+    - **`docs`**: Logger and OpenAPI documentation
+    - **`modules`**: Express middleware configurations
   - **`app.ts`**: Main entry point of the application, initializes Express and routes.
   
 - **`prisma`**: Contains Prisma schema and seed file.
   - **`schema.prisma`**: Defines the database schema and models.
   - **`seed.ts`**: Seeds the database with sample data.
 
-- **`__tests__`**: Contains the test files for the application.
+- **`Test`**: Contains the test files for the application.
+
+- **`docs`**: Documentation files
+  - **`LOGGING.md`**: Comprehensive logging documentation
+
+## Logging
+
+This application includes comprehensive logging capabilities. See [docs/LOGGING.md](docs/LOGGING.md) for detailed documentation on:
+- HTTP request/response logging
+- Error tracking and debugging
+- Security event monitoring
+- Performance metrics
+- Business action auditing
+- Configuration options
 
 ## Notes
 
