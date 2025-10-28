@@ -1,5 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
-import { packageJson } from '@/lib/config/env.config';
+import fs from 'fs';
+import path from 'path';
+
+const packageJsonPath = path.resolve('.', 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
 export const configureCustomHeaders = () => {
   return (_req: Request, res: Response, next: NextFunction) => {

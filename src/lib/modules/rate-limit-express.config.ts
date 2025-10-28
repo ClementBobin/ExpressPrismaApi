@@ -1,5 +1,7 @@
 import rateLimit from 'express-rate-limit';
-import { rememberIpMinutes, numberRequestPerIp } from '@/lib/config/env.config';
+
+const rememberIpMinutes = parseInt(process.env.REMEMBER_IP_MINUTES || '5', 10);
+const numberRequestPerIp = parseInt(process.env.NUMBER_REQUEST_PER_IP || '80', 10);
 
 export const configureRateLimit = () => {
   return rateLimit({

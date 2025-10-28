@@ -1,10 +1,16 @@
 // Import the OpenAPI registry from the local file
 import registry from './openAPIRegistry';
 
-import { httpsPort, url, packageJson, productionUrl } from '@/lib/config/env.config';
-
 // Import the OpenApiGeneratorV3 class from the zod-to-openapi package
 import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
+import fs from 'fs';
+import path from 'path';
+
+const httpsPort = parseInt(process.env.PORT || '3443', 10);
+const url = process.env.URL || 'http://localhost';
+const productionUrl = process.env.PRODUCTION_URL || 'https://api.example.com';
+const packageJsonPath = path.resolve('.', 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
 
 // Function to generate the OpenAPI document

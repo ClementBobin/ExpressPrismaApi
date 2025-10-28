@@ -1,8 +1,13 @@
 import type { Request, Response, RequestHandler } from 'express';
 import { app } from '@/lib/express';
-import { packageJson, nodeEnv } from '@/lib/config/env.config';
 import { HealthCheck } from '@/DTO/server.schema';
 import { validateResponse } from '@/lib/modules/zod-validator-express.config';
+import fs from 'fs';
+import path from 'path';
+
+const packageJsonPath = path.resolve('.', 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+const nodeEnv = process.env.NODE_ENV || 'development';
 
 // Middleware to validate the health check response using Zod
 export const healthCheckValidator = validateResponse(HealthCheck, app.logger);

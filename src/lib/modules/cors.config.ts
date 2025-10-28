@@ -1,6 +1,12 @@
 import cors from 'cors';
-import { nodeEnv, allowedOrigins } from '@/lib/config/env.config';
 import type { Logger } from 'winston';
+
+const nodeEnv = process.env.NODE_ENV || 'development';
+const url = process.env.URL || 'http://localhost';
+const productionUrl = process.env.PRODUCTION_URL || 'https://api.example.com';
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : [url, productionUrl];
 
 export const configureCors = (logger: Logger) => {
   logger.debug(`NODE_ENV raw: [${nodeEnv}]`);
