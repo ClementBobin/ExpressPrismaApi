@@ -49,9 +49,9 @@ Every HTTP request is automatically logged with the following information:
 ### Log Format Example
 
 ```
-[2025-10-28 14:13:29] info: [HTTP Request Start] GET /api/users | Request ID: 123e4567-e89b-12d3-a456-426614174000 | Client IP: 192.168.1.1 | User-Agent: Mozilla/5.0... | Auth: Bearer *** | Content-Length: 0bytes
+[2025-10-28 14:13:29] info: [HTTP Request Start] GET /api/users | Request ID: 123e4567-e89b-12d3-a456-426614174000 | Client IP: 192.168.1.1 | User-Agent: Mozilla/5.0... | Auth: Bearer *** | Content-Length: 0 bytes
 
-[2025-10-28 14:13:30] info: [HTTP Request End] GET /api/users | Request ID: 123e4567-e89b-12d3-a456-426614174000 | Status: 200 | Duration: 45.23ms | Client IP: 192.168.1.1 | Response Size: 1024bytes
+[2025-10-28 14:13:30] info: [HTTP Request End] GET /api/users | Request ID: 123e4567-e89b-12d3-a456-426614174000 | Status: 200 | Duration: 45.23ms | Client IP: 192.168.1.1 | Response Size: 1024 bytes
 ```
 
 ### Correlation ID
@@ -129,7 +129,7 @@ logger.logSecurityEvent('permission_update', {
 // Log certificate events
 logger.logSecurityEvent('certificate_expired', {
   domain: 'example.com',
-  expiryDate: '2025-12-31',
+  expiryDate: 'YYYY-MM-DD',
   timestamp: new Date().toISOString(),
 });
 ```
@@ -294,13 +294,13 @@ The logging system can be integrated with monitoring tools:
 ## Example: Complete Request Flow
 
 ```
-[2025-10-28 14:13:29] info: [HTTP Request Start] POST /api/users | Request ID: abc123 | Client IP: 192.168.1.1 | User-Agent: curl/7.64.1 | Auth: Bearer *** | Content-Length: 234bytes
+[2025-10-28 14:13:29] info: [HTTP Request Start] POST /api/users | Request ID: abc123 | Client IP: 192.168.1.1 | User-Agent: curl/7.64.1 | Auth: Bearer *** | Content-Length: 234 bytes
 
 [2025-10-28 14:13:29] info: [BUSINESS ACTION] Action: user_created | User ID: user789 | Details: {"email":"new@example.com"}
 
 [2025-10-28 14:13:30] info: Database query: findMany users took 45.23ms, called from createUser in /src/services/user.service.ts
 
-[2025-10-28 14:13:30] info: [HTTP Request End] POST /api/users | Request ID: abc123 | Status: 201 | Duration: 234.56ms | Client IP: 192.168.1.1 | Response Size: 156bytes
+[2025-10-28 14:13:30] info: [HTTP Request End] POST /api/users | Request ID: abc123 | Status: 201 | Duration: 234.56ms | Client IP: 192.168.1.1 | Response Size: 156 bytes
 ```
 
 ## Troubleshooting
