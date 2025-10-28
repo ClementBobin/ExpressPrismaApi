@@ -11,7 +11,16 @@ describe('Error Handler Middleware', () => {
 
     errorHandler(error, req, res, jest.fn());
 
-    expect(logger.logWithErrorHandling).toHaveBeenCalledWith('Test error', error);
+    expect(logger.logWithErrorHandling).toHaveBeenCalledWith(
+      'Unhandled error occurred', 
+      error, 
+      false, 
+      'error',
+      expect.objectContaining({
+        method: req.method,
+        url: req.originalUrl,
+      })
+    );
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
       isSuccess: false,

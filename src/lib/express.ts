@@ -13,6 +13,8 @@ import { configureCustomHeaders } from './modules/custom-headers-express.config'
 import { configureErrorHandler } from './modules/error-handler-express.config';
 import { configureResponseLogger } from './modules/response-logger-express.config';
 import { configureCors } from './modules/cors.config';
+import { configurePerformanceMetrics } from './modules/performance-metrics-express.config';
+import { configureSecurityLogging } from './modules/security-logging-express.config';
 
 const httpsPort = parseInt(process.env.PORT || '3443', 10);
 const url = process.env.URL || 'http://localhost';
@@ -24,8 +26,13 @@ declare global {
     interface Application {
       logger: Logger;
     }
+     
     interface Response {
       json: () => Response;
+    }
+    // eslint-disable-next-line no-unused-vars
+    interface Request {
+      requestId?: string;
     }
   }
 }
@@ -43,6 +50,8 @@ app.use(configureRateLimit());
 app.use(configureCors(app.logger));
 app.use(configureCustomHeaders());
 app.use(express.json());
+app.use(configurePerformanceMetrics(app.logger));
+app.use(configureSecurityLogging(app.logger));
 app.use(configureResponseLogger(app.logger));
 app.use(configureErrorHandler(app.logger));
 

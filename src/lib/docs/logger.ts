@@ -78,10 +78,13 @@ winston.addColors(customColors);
 // Extend the Logger interface to include custom methods
 declare module 'winston' {
   interface Logger {
-    logWithErrorHandling(msg: any, error: any, hasSecret?: boolean, level?: string): void; // Method to log errors with handling
+    logWithErrorHandling(msg: any, error: any, hasSecret?: boolean, level?: string, context?: Record<string, any>): void; // Method to log errors with handling
     routeStart(req: any): string; // Method to log the start of a route
     routeEnd(req: any, res: any, id: string, durationInMs: number): void; // Method to log the end of a route
     trackOperationTime<T>(operation: Promise<T>, operationName: string): Promise<T>; // Method to track operation time
+    logSecurityEvent(eventType: string, details: Record<string, any>): void; // Method to log security events
+    logBusinessAction(action: string, userId?: string, details?: Record<string, any>): void; // Method to log business actions
+    logPerformanceMetric(metric: string, value: number, context?: Record<string, any>): void; // Method to log performance metrics
   }
 }
 
@@ -90,8 +93,16 @@ logger.routeStart = function (req: any): string {
   const requestId = uuidv4(); // Generate a unique ID for the request
   req.requestId = requestId; // Attach requestId to the request object
 
-  // Log request start with headers and method
-  logger.info(`${req.protocol.toUpperCase()}/${req.httpVersion} ${req.method} ${req.originalUrl} - Request ID: ${requestId} with headers: ${JSON.stringify(req.headers)} and body: ${JSON.stringify(req.body)}`);
+  // Extract client IP (considering proxy)
+  const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+  
+  // Extract relevant headers
+  const userAgent = req.headers['user-agent'] || 'unknown';
+  const authHeader = req.headers['authorization'] ? 'Bearer ***' : 'none'; // Mask actual token
+  const contentLength = req.headers['content-length'] || '0';
+  
+  // Log request start with comprehensive details
+  logger.info(`[HTTP Request Start] ${req.method} ${req.originalUrl} | Request ID: ${requestId} | Client IP: ${clientIp} | User-Agent: ${userAgent} | Auth: ${authHeader} | Content-Length: ${contentLength}bytes`);
 
   return requestId; // Return request ID for later use in routeEnd
 };
@@ -99,23 +110,44 @@ logger.routeStart = function (req: any): string {
 // Implement routeEnd method to log the end of a route
 logger.routeEnd = function (req: any, res: any, id: string, durationInMs: number): void {
   const statusCode = res.statusCode; // Get the status code
-  const headers = res.getHeaders(); // Get the response headers
-
-  // Log request end with status code, request ID, duration, and response headers
-  logger.info(`${req.protocol.toUpperCase()}/${req.httpVersion} ${req.method} ${req.originalUrl} - Request ID: ${id} - Status: ${statusCode}, DurationTotal: ${durationInMs}ms, Response Headers: ${JSON.stringify(headers)} and body: ${JSON.stringify(res.body)}`);
+  const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+  
+  // Calculate response size from content-length header if available
+  const responseSize = res.getHeader('content-length') || 'unknown';
+  
+  // Determine log level based on status code
+  const logLevel = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info';
+  
+  // Log request end with comprehensive details
+  logger.log(logLevel, `[HTTP Request End] ${req.method} ${req.originalUrl} | Request ID: ${id} | Status: ${statusCode} | Duration: ${durationInMs.toFixed(2)}ms | Client IP: ${clientIp} | Response Size: ${responseSize}bytes`);
 };
 
 // Implement logWithErrorHandling method to handle errors properly
-logger.logWithErrorHandling = function(msg: any, error: any, hasSecret: boolean = false, level: string = 'error'): void {
+logger.logWithErrorHandling = function(msg: any, error: any, hasSecret: boolean = false, level: string = 'error', context?: Record<string, any>): void {
   if (hasSecret && nodeEnv !== 'development') {
     return; // Do not log if hasSecret is true and not in development environment
   } else {
+    // Build error log with context
+    let logMessage = msg;
+    
     // If the message is an error, log the stack trace
     if (error instanceof Error) {
-      this.log(level, `${msg}: ${error.stack}`);
+      logMessage = `${msg} | Error Type: ${error.name} | Message: ${error.message}`;
+      
+      // Add stack trace in development or for critical errors
+      if (nodeEnv === 'development' || level === 'fatal' || level === 'crit') {
+        logMessage += ` | Stack: ${error.stack}`;
+      }
     } else {
-      this.log(level, `${msg}: ${JSON.stringify(error)}`);
+      logMessage = `${msg} | Error Details: ${JSON.stringify(error)}`;
     }
+    
+    // Add context if provided
+    if (context) {
+      logMessage += ` | Context: ${JSON.stringify(context)}`;
+    }
+    
+    this.log(level, logMessage);
   }
 };
 
@@ -141,6 +173,37 @@ logger.trackOperationTime = async function<T>(operation: Promise<T>, operationNa
   logger.info(`${operationName} took ${durationInMs}ms, called from ${functionName} in ${fileName}`);
 
   return result; // Return the result of the operation
+};
+
+// Implement logSecurityEvent method to log security-related events
+logger.logSecurityEvent = function(eventType: string, details: Record<string, any>): void {
+  const sanitizedDetails = { ...details };
+  
+  // Sanitize sensitive information
+  if (sanitizedDetails.token) {
+    sanitizedDetails.token = '***REDACTED***';
+  }
+  if (sanitizedDetails.password) {
+    sanitizedDetails.password = '***REDACTED***';
+  }
+  
+  const detailsStr = JSON.stringify(sanitizedDetails);
+  logger.warn(`[SECURITY EVENT] Type: ${eventType} | Details: ${detailsStr}`);
+};
+
+// Implement logBusinessAction method to log business actions for audit
+logger.logBusinessAction = function(action: string, userId?: string, details?: Record<string, any>): void {
+  const userInfo = userId ? `User ID: ${userId}` : 'User: Unknown';
+  const detailsStr = details ? ` | Details: ${JSON.stringify(details)}` : '';
+  
+  logger.info(`[BUSINESS ACTION] Action: ${action} | ${userInfo}${detailsStr}`);
+};
+
+// Implement logPerformanceMetric method to log performance metrics
+logger.logPerformanceMetric = function(metric: string, value: number, context?: Record<string, any>): void {
+  const contextStr = context ? ` | Context: ${JSON.stringify(context)}` : '';
+  
+  logger.info(`[PERFORMANCE METRIC] Metric: ${metric} | Value: ${value}${contextStr}`);
 };
 
 export default logger; // Export the logger instance
