@@ -1,6 +1,10 @@
 import { configureCustomHeaders } from '@/lib/modules/custom-headers-express.config';
 import { mockRequest, mockResponse, mockNext } from '../../../__mocks__/test-utils';
-import { packageJson } from '@/lib/config/env.config';
+import fs from 'fs';
+import path from 'path';
+
+const packageJsonPath = path.resolve('.', 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
 describe('Custom Headers Middleware', () => {
   it('should remove X-Powered-By and Server headers', () => {

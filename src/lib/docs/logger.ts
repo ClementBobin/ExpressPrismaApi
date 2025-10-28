@@ -3,7 +3,15 @@ import winston from 'winston'; // Import winston for logging
 import { v4 as uuidv4 } from 'uuid'; // Import uuid for generating unique IDs
 import DailyRotateFile from 'winston-daily-rotate-file'; // Import DailyRotateFile for log rotation
 
-import { dateFormat, unixFormat, logLevel, logFileEnabled, logDirectory, keepLogsInProd, keepLogsFor, storageDateFormat, nodeEnv } from '@/lib/config/env.config';
+const dateFormat = process.env.DATE_FORMAT || 'YYYY-MM-DD HH:mm:ss';
+const storageDateFormat = process.env.STORAGE_DATE_PATTERNS || 'YYYY-MM';
+const unixFormat = process.env.UNIX_FORMAT === 'true';
+const logLevel = process.env.LOG_LEVEL || 'info';
+const logFileEnabled = process.env.LOG_TO_FILE === 'true';
+const keepLogsInProd = process.env.KEEP_LOGS_IN_PROD === 'true';
+const logDirectory = process.env.LOG_DIRECTORY || './logs';
+const nodeEnv = process.env.NODE_ENV || 'development';
+const keepLogsFor = process.env.KEEP_LOGS_FOR || '90d';
 
 // Define custom colors for log levels
 const customColors = {

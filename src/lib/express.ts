@@ -7,13 +7,15 @@ import logger from './docs/logger';
 import fs from 'fs';
 import https from 'https';
 import http from 'http';
-import { httpsPort, url } from './config/env.config';
 import { configureHelmet } from './modules/helmet-express.config';
 import { configureRateLimit } from './modules/rate-limit-express.config';
 import { configureCustomHeaders } from './modules/custom-headers-express.config';
 import { configureErrorHandler } from './modules/error-handler-express.config';
 import { configureResponseLogger } from './modules/response-logger-express.config';
 import { configureCors } from './modules/cors.config';
+
+const httpsPort = parseInt(process.env.PORT || '3443', 10);
+const url = process.env.URL || 'http://localhost';
 
 declare global {
   // eslint-disable-next-line no-unused-vars
