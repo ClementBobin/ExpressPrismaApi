@@ -53,11 +53,80 @@ export const HealthCheck = z.object({
     unix: z.number().openapi({ description: 'Unix timestamp', example: 1630512000000 })
 }).openapi('HealthCheck', { description: 'Health check details' });
 
+// Base Pagination Query Schema
+export const PaginationQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1).openapi({
+    description: 'Page number (starting from 1)',
+    example: 1,
+  }),
+  limit: z.coerce.number().int().positive().min(1).max(100).default(10).openapi({
+    description: 'Number of items per page (max 100)',
+    example: 10,
+  }),
+  sortBy: z.string().optional().openapi({
+    description: 'Field to sort by',
+    example: 'createdAt',
+  }),
+  sortOrder: z.enum(['asc', 'desc']).default('desc').openapi({
+    description: 'Sort order',
+    example: 'desc',
+  }),
+}).openapi('PaginationQuery', {
+  description: 'Pagination query parameters',
+});
+
+// Pagination Meta Schema
+export const PaginationMetaSchema = z.object({
+  page: z.number().int().positive().openapi({
+    description: 'Current page number',
+    example: 1,
+  }),
+  limit: z.number().int().positive().openapi({
+    description: 'Items per page',
+    example: 10,
+  }),
+  total: z.number().int().nonnegative().openapi({
+    description: 'Total number of items',
+    example: 150,
+  }),
+  totalPages: z.number().int().nonnegative().openapi({
+    description: 'Total number of pages',
+    example: 15,
+  }),
+  hasNextPage: z.boolean().openapi({
+    description: 'Whether there is a next page',
+    example: true,
+  }),
+  hasPrevPage: z.boolean().openapi({
+    description: 'Whether there is a previous page',
+    example: false,
+  }),
+}).openapi('PaginationMeta', {
+  description: 'Pagination metadata',
+});
+
+// Generic Paginated Response Schema
+export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+  z.object({
+    data: dataSchema.openapi({
+      description: 'Array of items',
+    }),
+    pagination: PaginationMetaSchema.openapi({
+      description: 'Pagination information',
+    }),
+  }).openapi(`PaginatedResponse<${dataSchema._def.typeName}>`, {
+    description: 'Paginated response',
+  });
+
 // TypeScript type for HealthCheck schema
 export type HealthCheckType = z.infer<typeof HealthCheck>;
 
 // TypeScript type for ResponseError schema
 export type ResponseErrorType = z.infer<typeof ResponseError>;
+
+// Pagination Query Schemas
+export type PaginationQueryType = z.infer<typeof PaginationQuerySchema>;
+export type PaginationMetaType = z.infer<typeof PaginationMetaSchema>;
 
 // Creating a response schema that includes the HealthCheck schema
 export const ResponseWithHealthCheck = createResponseSchema(HealthCheck);

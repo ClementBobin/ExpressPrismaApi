@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,4 +18,108 @@ model Users {
   salt      String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+
+  // User's promotion
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  promotionId String?
+  
+  // User's global role
+  globalRole  GlobalRole? @relation(fields: [globalRoleId], references: [id])
+  globalRoleId Int?
+  
+  // User's project teams and roles
+  teamMemberships TeamMember[]
+  
+  // Projects owned by the user
+  ownedProjects Project[] @relation("ProjectOwner")
+}
+
+model Promotion {
+  id          String   @id @default(uuid())
+  title       String
+  users       Users[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
+model GlobalRole {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  
+  users Users[]
+}
+
+model ProjectTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  
+  projects Project[]
+}
+
+model Project {
+  id              String          @id @default(uuid())
+  timePeriod      String
+  ownerId         Int
+  owner           Users           @relation("ProjectOwner", fields: [ownerId], references: [id])
+  templateId      String
+  template        ProjectTemplate @relation(fields: [templateId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Teams working on this project
+  teams           Team[]
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Members of this team
+  members     TeamMember[]
+}
+
+model TeamMember {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        Users    @relation(fields: [userId], references: [id])
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id])
+  
+  // Special role for this specific project/team (e.g., PO, Scrum Master, Dev Lead, etc.)
+  projectRoleId Int?
+  projectRole   ProjectRole? @relation(fields: [projectRoleId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, teamId])
+}
+
+model ProjectRole {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  teamMembers TeamMember[]
+}
+
+model EduximCategory {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }
